@@ -39,12 +39,27 @@ class Bot:
         return message
 
     def process(self, text):
-        intent, response, args, chips = self.dialogflow.get_response(text)
-        if args == "":
-            return self.create_intent_message(intent, response)
-        it_prompt = " ".join(args)
-        en_prompt = self.translate.translate(it_prompt)
-        image_url = self.dalle.generate_image(en_prompt)
+        try:
+            intent, response, args, chips = self.dialogflow.get_response(text)
+            if args == "":
+                return self.create_intent_message(intent, response)
+            it_prompt = " ".join(args)
+        except Exception as e:
+            print(e)
+            return "Non ho capito cosa mi hai chiesto"
+
+        try:
+            en_prompt = self.translate.translate(it_prompt)
+        except Exception as e:
+            print(e)
+            return "Non sono riuscito a tradurre la tua richiesta"
+
+        try:
+            image_url = self.dalle.generate_image(en_prompt)
+        except Exception as e:
+            print(e)
+            return "Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa"
+
         return self.create_img_message(text, it_prompt, en_prompt, image_url)
 
     def text_generic(self, update: Update, _: CallbackContext) -> None:
@@ -67,7 +82,7 @@ class Bot:
             text = ""
         except Exception as e:
             print(e)
-            text = "error"
+            text = "Non ho sentito, puoi ripetere?"
         os.remove("audio/file_%s.wav" % chat_id)
         update.message.reply_text(self.process(text), parse_mode='MarkdownV2')
 
