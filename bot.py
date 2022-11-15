@@ -33,16 +33,11 @@ class Bot:
         message += "*Image url*: %s" % self.add_escape(image_url)
         return message
 
-    def create_intent_message(self, intent, text):
-        message = "*Intent*: %s\n" % self.add_escape(intent)
-        message += "*Text*: %s" % self.add_escape(text)
-        return message
-
     def process(self, text):
         try:
             intent, response, args, chips = self.dialogflow.get_response(text)
-            if args == "":
-                return self.create_intent_message(intent, response)
+            if intent != "image.imagine":
+                return self.add_escape(response)
             it_prompt = " ".join(args)
         except Exception as e:
             print(e)
