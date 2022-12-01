@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandle
 import speech_recognition
 import os
 from pydub import AudioSegment
-from sdk import Dialogflow, Translate, DALLE
+from sdk import Dialogflow, Translate, DALLE2
 
 
 class Bot:
@@ -17,7 +17,7 @@ class Bot:
         self.recognizer = speech_recognition.Recognizer()
         self.dialogflow = Dialogflow()
         self.translate = Translate()
-        self.dalle = DALLE()
+        self.dalle = DALLE2()
 
     @staticmethod
     def add_escape(message):
