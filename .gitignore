@@ -1,5 +1,4 @@
 # Byte-compiled / optimized / DLL files
-.env
 vox.json
 __pycache__/
 *.py[cod]

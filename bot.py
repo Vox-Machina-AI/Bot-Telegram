@@ -77,7 +77,7 @@ class Bot:
             text = ""
         except Exception as e:
             print(e)
-            text = "Non ho sentito, puoi ripetere?"
+            text = ""
         os.remove("audio/file_%s.wav" % chat_id)
         update.message.reply_text(self.process(text), parse_mode='MarkdownV2')
 
