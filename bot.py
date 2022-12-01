@@ -34,14 +34,17 @@ class Bot:
         return message
 
     def process(self, text):
-        try:
-            intent, response, args, chips = self.dialogflow.get_response(text)
-            if intent != "image.imagine":
-                return self.add_escape(response)
-            it_prompt = " ".join(args)
-        except Exception as e:
-            print(e)
-            return "Non ho capito cosa mi hai chiesto"
+        if len(text.split(" ")) < 15:
+            try:
+                intent, response, args, chips = self.dialogflow.get_response(text)
+                if intent != "image.imagine":
+                    return self.add_escape(response)
+                it_prompt = " ".join(args)
+            except Exception as e:
+                print(e)
+                return "Non ho capito cosa mi hai chiesto"
+        else:
+            it_prompt = text
 
         try:
             en_prompt = self.translate.translate(it_prompt)
