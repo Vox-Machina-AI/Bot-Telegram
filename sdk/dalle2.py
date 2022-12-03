@@ -6,6 +6,6 @@ class DALLE2:
     def __init__(self):
         self.dalle = Dalle2(os.getenv('DALLE2_TOKEN'))
 
-    def generate_image(self, prompt):
+    def generate_images(self, prompt):
         generations = self.dalle.generate(prompt)
-        return generations[0]['generation']['image_path']
+        return list(map(lambda img: img['generation']['image_path'], generations))

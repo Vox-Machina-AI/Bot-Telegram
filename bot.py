@@ -1,10 +1,9 @@
-from telegram import Update
+from telegram import Update, InputMediaPhoto
 from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 import speech_recognition
 import os
 from pydub import AudioSegment
 from sdk import Dialogflow, Translate, DALLE2
-
 
 class Bot:
     def __init__(self, bot_token):
@@ -26,50 +25,45 @@ class Bot:
             message = message.replace(character, "\%s" % character, 30)
         return message
 
-    def create_img_message(self, text, it_prompt, en_prompt, image_url):
-        message = "*Text*: %s\n" % self.add_escape(text)
-        message += "*IT prompt*: %s\n" % self.add_escape(it_prompt)
-        message += "*EN prompt*: %s\n" % self.add_escape(en_prompt)
-        message += "*Image url*: %s" % self.add_escape(image_url)
-        return message
-
-    def process(self, text):
+    def process(self, text, message):
         if len(text.split(" ")) < 15:
             try:
                 intent, response, args, chips = self.dialogflow.get_response(text)
                 if intent != "image.imagine":
-                    return self.add_escape(response)
+                    return message.reply_text(self.add_escape(response))
                 it_prompt = " ".join(args)
             except Exception as e:
-                print(e)
-                return "Non ho capito cosa mi hai chiesto"
+                message.reply_text("Non ho capito cosa mi hai chiesto")
+                raise e
         else:
             it_prompt = text
 
         try:
             en_prompt = self.translate.translate(it_prompt)
         except Exception as e:
-            print(e)
-            return "Non sono riuscito a tradurre la tua richiesta"
+            message.reply_text("Non sono riuscito a tradurre la tua richiesta")
+            raise e
 
         try:
-            image_url = self.dalle.generate_image(en_prompt)
+            urls = self.dalle.generate_images(en_prompt)
+            media = list(map(lambda url: InputMediaPhoto(url), urls))
+            media[0].parse_mode = 'MarkdownV2'
+            media[0].caption = "*IT prompt*: %s\n*EN prompt*: %s" % (it_prompt, en_prompt)
         except Exception as e:
-            print(e)
-            return "Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa"
+            message.reply_text("Non sono riuscito a generare la tua immagine, probabilmente hai usato una parola non ammessa")
+            raise e
 
-        return self.create_img_message(text, it_prompt, en_prompt, image_url)
+        return message.reply_media_group(media)
 
     def text_generic(self, update: Update, _: CallbackContext) -> None:
         text = update.message.text
-        update.message.reply_text(self.process(text), parse_mode='MarkdownV2')
+        self.process(text, update.message)
 
     def audio_generic(self, update: Update, context: CallbackContext) -> None:
         chat_id = str(update.message.chat_id)
         context.bot.get_file(update.message.voice.file_id).download("audio/file_%s.ogg" % chat_id)
         audio_file = AudioSegment.from_ogg("audio/file_%s.ogg" % chat_id)
         audio_file.export("audio/file_%s.wav" % chat_id, format="wav")
-
         try:
             with speech_recognition.AudioFile("audio/file_%s.wav" % chat_id) as source:
                 audio = self.recognizer.record(source, duration=7)
@@ -82,7 +76,7 @@ class Bot:
             print(e)
             text = ""
         os.remove("audio/file_%s.wav" % chat_id)
-        update.message.reply_text(self.process(text), parse_mode='MarkdownV2')
+        self.process(text, update.message)
 
     @staticmethod
     def start(update: Update, _: CallbackContext) -> None:
