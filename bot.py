@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandle
 import speech_recognition
 import os
 from pydub import AudioSegment
-from sdk import Dialogflow, Translate, DALLE2
+from sdk import Dialogflow, Translate, ImageAI
 
 class Bot:
     def __init__(self, bot_token):
@@ -16,7 +16,7 @@ class Bot:
         self.recognizer = speech_recognition.Recognizer()
         self.dialogflow = Dialogflow()
         self.translate = Translate()
-        self.dalle = DALLE2()
+        self.image = ImageAI()
 
     @staticmethod
     def add_escape(message):
@@ -46,7 +46,7 @@ class Bot:
             raise e
 
         try:
-            urls = self.dalle.generate_images(en_prompt)
+            urls = self.image.generate_images(en_prompt)
             media = list(map(lambda url: InputMediaPhoto(url), urls))
             media[0].parse_mode = 'MarkdownV2'
             media[0].caption = "*IT prompt*: %s\n*EN prompt*: %s" % (it_prompt, en_prompt)
