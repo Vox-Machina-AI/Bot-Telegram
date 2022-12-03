@@ -38,6 +38,7 @@ class Bot:
         else:
             it_prompt = text
 
+        loading_msg = message.reply_text("Attendi qualche secondo...")
         try:
             en_prompt = self.translate.translate(it_prompt)
         except Exception as e:
@@ -53,6 +54,7 @@ class Bot:
             message.reply_text("Non sono riuscito a generare la tua immagine, probabilmente hai usato una parola non ammessa")
             raise e
 
+        loading_msg.delete()
         return message.reply_media_group(media)
 
     def text_generic(self, update: Update, _: CallbackContext) -> None:
