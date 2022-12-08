@@ -54,6 +54,7 @@ class Bot:
             media[0].caption = "*IT prompt*: %s\n*EN prompt*: %s" % (it_prompt, en_prompt)
         except Exception as e:
             print(e)
+            loading_msg.delete()
             return "Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa"
 
         loading_msg.delete()
