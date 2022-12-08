@@ -5,3 +5,4 @@ pydub==0.25.1
 SpeechRecognition==3.8.1
 python-telegram-bot==13.8.1
 openai==0.25.0
+dalle2==1.0.11
