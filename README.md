@@ -11,7 +11,7 @@ Environment variables are read from the operating system or from a `.env` file.
 
 These variables need to be defined in order for the bot to work properly:
 - `TG_TOKEN`: Telegram token acquired from the BotFather.
-- `DALLE_TOKEN`: OpenAI api key.
+- `OPENAI_TOKEN`: OpenAI api key.
 - `DIALOGFLOW_AGENT`: Dialogflow agent.
 - `DIALOGFLOW_CREDENTIAL`: Dialogflow credentials.
 - `GOOGLE_APPLICATION_CREDENTIALS`: Google application credentials.
