@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandle
 import speech_recognition
 import os
 from pydub import AudioSegment
-from sdk import Dialogflow, Translate, DALLE, DALLE2
+from sdk import Dialogflow, Translate, OpenAI
 
 
 class Bot:
@@ -17,8 +17,7 @@ class Bot:
         self.recognizer = speech_recognition.Recognizer()
         self.dialogflow = Dialogflow()
         self.translate = Translate()
-        self.dalle = DALLE()
-        self.dalle2 = DALLE2()
+        self.openai = OpenAI()
 
     @staticmethod
     def add_escape(message):
@@ -46,19 +45,24 @@ class Bot:
             print(e)
             return "Non sono riuscito a tradurre la tua richiesta"
 
+        try:
+            description = self.openai.generate_description(it_prompt)
+        except Exception as e:
+            print(e)
+            description = "Errore nella generaione della descrizione"
+
         loading_msg = message.reply_text("Attendi qualche secondo...")
         try:
-            urls = self.dalle.generate_images(en_prompt)
+            urls = self.openai.generate_images(en_prompt)
             media = list(map(lambda url: InputMediaPhoto(url), urls))
             media[0].parse_mode = 'MarkdownV2'
-            media[0].caption = "*IT prompt*: %s\n*EN prompt*: %s" % (it_prompt, en_prompt)
+            media[0].caption = "*Richiesta*: %s\n*IT prompt*: %s\n*EN prompt*: %s\nDescrizione: %s" % (text, it_prompt, en_prompt, description)
+            loading_msg.delete()
+            return message.reply_media_group(media)
         except Exception as e:
             print(e)
             loading_msg.delete()
             return "Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa"
-
-        loading_msg.delete()
-        return message.reply_media_group(media)
 
     def text_generic(self, update: Update, _: CallbackContext) -> None:
         text = update.message.text
