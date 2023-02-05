@@ -14,5 +14,5 @@ class OpenAI:
 
     def generate_description(self, prompt):
         prompt = "impersona un un critico d'arte famoso e di dover descrivere una immagine che raffigura %s" % prompt
-        completion = self.gpt.create(engine="text-davinci-003", prompt=prompt, max_tokens=100, temperature=0.7)
+        completion = self.gpt.create(engine="text-davinci-003", prompt=prompt, max_tokens=150, temperature=0.7)
         return completion.choices[0].text

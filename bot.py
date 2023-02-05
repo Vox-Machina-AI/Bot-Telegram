@@ -26,7 +26,7 @@ class Bot:
             message = message.replace(character, "\%s" % character, 30)
         return message
 
-    def process(self, text, message):
+    def process(self, text, update):
         if len(text.split(" ")) < 15:
             try:
                 intent, response, args, chips = self.dialogflow.get_response(text)
@@ -35,7 +35,7 @@ class Bot:
                 it_prompt = " ".join(args)
             except Exception as e:
                 print(e)
-                return "Non ho capito cosa mi hai chiesto"
+                return update.message.reply_text("Non ho capito cosa mi hai chiesto")
         else:
             it_prompt = text
 
@@ -43,30 +43,36 @@ class Bot:
             en_prompt = self.translate.translate(it_prompt)
         except Exception as e:
             print(e)
-            return "Non sono riuscito a tradurre la tua richiesta"
+            return update.message.reply_text("Non sono riuscito a tradurre la tua richiesta")
+
+        try:
+            urls = self.openai.generate_images(en_prompt)
+            media = list(map(lambda url: InputMediaPhoto(url), urls))
+        except Exception as e:
+            print(e)
+            return update.message.reply_text("Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa")
 
         try:
             description = self.openai.generate_description(it_prompt)
         except Exception as e:
             print(e)
-            description = "Errore nella generaione della descrizione"
+            return update.message.reply_text("Errore nella generaione della descrizione")
 
-        loading_msg = message.reply_text("Attendi qualche secondo...")
         try:
-            urls = self.openai.generate_images(en_prompt)
-            media = list(map(lambda url: InputMediaPhoto(url), urls))
             media[0].parse_mode = 'MarkdownV2'
-            media[0].caption = "*Richiesta*: %s\n*IT prompt*: %s\n*EN prompt*: %s\nDescrizione: %s" % (text, it_prompt, en_prompt, description)
-            loading_msg.delete()
-            return message.reply_media_group(media)
+            message = "*Text*: %s\n" % self.add_escape(text)
+            message += "*IT prompt*: %s\n" % self.add_escape(it_prompt)
+            message += "*EN prompt*: %s\n" % self.add_escape(en_prompt)
+            message += "*Description*: %s" % self.add_escape(description)
+            media[0].caption = message
+            return update.message.reply_media_group(media)
         except Exception as e:
             print(e)
-            loading_msg.delete()
-            return "Non sono riuscito a generare al tua immagine, probabilmente hai usato una parola non ammessa"
+            return update.message.reply_text("Errore nella formattazione del messaggio")
 
     def text_generic(self, update: Update, _: CallbackContext) -> None:
         text = update.message.text
-        update.message.reply_text(self.process(text, update.message), parse_mode='MarkdownV2')
+        return self.process(text, update)
 
     def audio_generic(self, update: Update, context: CallbackContext) -> None:
         chat_id = str(update.message.chat_id)
@@ -86,7 +92,7 @@ class Bot:
             print(e)
             text = ""
         os.remove("audio/file_%s.wav" % chat_id)
-        update.message.reply_text(self.process(text, update.message), parse_mode='MarkdownV2')
+        return self.process(text, update)
 
     @staticmethod
     def start(update: Update, _: CallbackContext) -> None:
