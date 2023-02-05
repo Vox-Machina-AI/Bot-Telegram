@@ -31,7 +31,7 @@ class Bot:
             try:
                 intent, response, args, chips = self.dialogflow.get_response(text)
                 if intent != "image.imagine":
-                    return self.add_escape(response)
+                    return update.message.reply_text(self.add_escape(response), parse_mode='MarkdownV2')
                 it_prompt = " ".join(args)
             except Exception as e:
                 print(e)
