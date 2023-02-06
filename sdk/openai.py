@@ -1,5 +1,6 @@
 import openai
 import os
+import random
 
 
 class OpenAI:
@@ -13,6 +14,14 @@ class OpenAI:
         return list(map(lambda img: img['url'], images))
 
     def generate_description(self, prompt):
-        prompt = "impersona un un critico d'arte famoso e di dover descrivere una immagine che raffigura %s" % prompt
-        completion = self.gpt.create(engine="text-davinci-003", prompt=prompt, max_tokens=150, temperature=0.7)
+        prompt_array = [
+            "impersona un un critico d'arte famoso e descrivi brevemente una immagine che raffigura %s" % prompt,
+            "descrivi brevemente che cosa vedi nell'immagine che ritrae %s" % prompt,
+            "quali sono i dettagli più importanti dell'immagine che rappresenta %s" % prompt
+        ]
+
+        completion = self.gpt.create(engine="text-davinci-003", 
+                                     prompt=random.choices(prompt_array),
+                                     max_tokens=150,
+                                     temperature=0.7)
         return completion.choices[0].text
